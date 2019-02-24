@@ -51,11 +51,25 @@ namespace Project_Two
 
                 //SB WINNER OUTPUT
 
-                writer.WriteLine("Super Bowl Winners -");
-                foreach(SuperBowl winner in superBowlList)
+                writer.WriteLine("Super Bowl Winners:");
+                string sbNumber = "SB";
+                string sbWinner = "Winner";
+                string sbLoser = "Loser";
+                string sbYear = "Year";
+                string sbQB = "QB";
+                string sbCoach = "Coach";
+                string sbMVP = "MVP";
+                string sbPtDiff = "Pt Diff";
+                string sbCity = "City";
+                string sbState = "State";
+                string sbStadium = "Stadium";
+
+                writer.WriteLine("{0,-8}{1,-21}{2,-5}{3,-27}{4,-16}{5,-26}{6,-7}",sbNumber,sbWinner,sbYear,sbQB,sbCoach,sbMVP,sbPtDiff);
+                writer.WriteLine(new string('-', 110));
+                foreach (SuperBowl winner in superBowlList)
                 {
                 double ptDifference = winner.winnerPts - winner.loserPts;
-                writer.WriteLine($"{winner.sb} {winner.winner} '{winner.date.Substring(winner.date.Length - 2)} {winner.winnerQB} {winner.winnerCoach} {winner.MVP} {ptDifference}");
+                writer.WriteLine($"{winner.sb,-8}{winner.winner,-20} '{winner.date.Substring(winner.date.Length - 2),-3} {winner.winnerQB,-26} {winner.winnerCoach,-15} {winner.MVP,-25} {ptDifference,-7}");
                 }
 
 
@@ -66,16 +80,16 @@ namespace Project_Two
                                         orderby superBowl.attendance descending
                                         select superBowl).Take(5);
 
-                writer.WriteLine("\nTop 5 attended super bowls -");
+                writer.WriteLine("\nTop 5 attended super bowls:");
+                writer.WriteLine("{0,-5}{1,-20}{2,-20}{3,-10}{4,-11}{5,-16}", sbYear, sbWinner, sbLoser, sbCity, sbState, sbStadium);
+                writer.WriteLine(new string('-', 81));
               
                     foreach (SuperBowl superBowl in top5AttendedSBsQ)
                     {
-                        writer.WriteLine("{0} {1} {2} {3} {4} {5}", superBowl.date.Substring(superBowl.date.Length - 2), superBowl.winner, superBowl.loser, superBowl.city, superBowl.state, superBowl.stadium);
+                        writer.WriteLine("'{0,-4}{1,-20}{2,-20}{3,-10}{4,-11}{5,-16}", superBowl.date.Substring(superBowl.date.Length - 2), superBowl.winner, superBowl.loser, superBowl.city, superBowl.state, superBowl.stadium);
                     }
                 
-
                 // STATE/CITY/STADIUM THAT HOSTED THE MOST SUPER BOWLS
-
 
                 var mostHostState = superBowlList
                     .GroupBy(state => state.state)
@@ -92,33 +106,34 @@ namespace Project_Two
                     .OrderByDescending(group => group.Count())
                     .First().Key;
 
-                writer.WriteLine("\nState that hosted the most super bowls - {0}\n" +
-                	              "City that hosted the most super bowls - {1}\n" +
-                	              "Stadium that hosted the most super bowls - {2}",
+                writer.WriteLine("\nState that hosted the most super bowls:\n\t{0}\n" +
+                	              "City that hosted the most super bowls:\n\t{1}\n" +
+                	              "Stadium that hosted the most super bowls:\n\t{2}",
                                   mostHostState, mostHostCity,mostHostStadium);
-
 
                 // PLAYERS WHO WON MVP MORE THAN ONCE
 
-
-                var mvpQ = from superBowl in superBowlList
-                           orderby superBowl.MVP[0]
-                           group superBowl by superBowl.MVP;
-                writer.WriteLine("\nPlayers who have won MVP multiple times -");
-                foreach (var group in mvpQ)
+                writer.WriteLine("\nPlayers who've won MVP multiple times:");
+                var mvpGroup = from superBowl in superBowlList
+                               group superBowl by superBowl.MVP into mvps
+                               where mvps.Count() > 1
+                               orderby mvps.Key
+                               select mvps;
+                /*
+                var multiMVP = from mvp in mvpGroup
+                               where mvpGroup.Count() > 1
+                               select mvp;
+                               */                              
+                foreach(var player in mvpGroup)
                 {
-                    if(group.Count() > 1)
+                    writer.WriteLine(player.Key);
+                    foreach(var mvp in player)
                     {
-                        foreach (var mvp in group)
-                        {
-                            writer.WriteLine("\t{0} {1} {2}", mvp.MVP, mvp.winner, mvp.loser);
-                        }
+                        writer.WriteLine("\tWon with {0} and beat {1}", mvp.winner, mvp.loser);
                     }
                 }
 
-
                 //1    //WHICH COACH LOST THE MOST AMOUNT OF SUPER BOWLSSS?
-
 
                 var mostLossesCoach = superBowlList
                     .GroupBy(coach => coach.loserCoach)
@@ -127,9 +142,7 @@ namespace Project_Two
 
                 writer.WriteLine("\nWhich coach lost the most super bowls?\n\t{0}", mostLossesCoach);
 
-
                 //2    //WHICH COACH WON THE MOST AMOUNT OF SUPER BOWLSSS?
-
 
                 var mostWinsCoach = superBowlList
                     .GroupBy(coach => coach.winnerCoach)
@@ -138,9 +151,7 @@ namespace Project_Two
 
                 writer.WriteLine("\nWhich coach won the most super bowls?\n\t{0}",mostWinsCoach);
 
-
                 //3    //WHICH TEAMS WON THE MOST SUPERBOWLS
-
 
                 var mostWinsTeam = superBowlList
                     .GroupBy(team => team.winner)
@@ -149,9 +160,7 @@ namespace Project_Two
 
                 writer.WriteLine("\nWhich team has won the most super bowls?\n\t{0}",mostWinsTeam);
 
-
                 //4    //WHICH TEAM LOST THE MOST SUPER BOWLS
-
 
                 var mostLossesTeam = superBowlList
                     .GroupBy(team => team.loser)
@@ -168,7 +177,6 @@ namespace Project_Two
 
                 writer.WriteLine("\nWhich super bowl had the greatest point difference?\n\tSuper bowl {0}",ptDiffQ.First().sb);
 
-
                 //6    //WHAT IS THE AVE ATTENDANCE OF ALL THE SBs
 
                 int totalAttendance = 0;
@@ -180,11 +188,9 @@ namespace Project_Two
 
                 writer.WriteLine("\nWhat is the average attendance of all the super bowls?\n\t{0} people",avgAttendance);
 
-
                 CSVFile.Close();
                 reader.Close();
                 txtFile.Close();
-
             }
             else
             {
